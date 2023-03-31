@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"sync"
 	"time"
 )
 
@@ -15,6 +16,8 @@ type dailyFileWriter struct {
 	lastYearDay int
 	// 输出文件
 	outputFile *os.File
+
+	fileSwitchLock *sync.Mutex
 }
 
 func (w *dailyFileWriter) Write(byteArray []byte) (n int, err error) {
@@ -35,9 +38,18 @@ func (w *dailyFileWriter) Write(byteArray []byte) (n int, err error) {
 	return len(byteArray), nil
 }
 
+// 这里可能出现一个并发问题
 // 获取输出文件  每天输出一个新的日志文件
 func (w *dailyFileWriter) getOutputFile() (io.Writer, error) {
 	yearDay := time.Now().YearDay()
+
+	if w.lastYearDay == yearDay &&
+		nil != w.outputFile {
+		return w.outputFile, nil
+	}
+
+	w.fileSwitchLock.Lock()
+	defer w.fileSwitchLock.Unlock()
 
 	if w.lastYearDay == yearDay &&
 		nil != w.outputFile {
