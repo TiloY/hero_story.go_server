@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"google.golang.org/protobuf/proto"
+	"hero_story.go_server/biz_server/msg"
 	"hero_story.go_server/comm/log"
 	"net/http"
 	"os"
@@ -68,6 +70,10 @@ func webSocketHandshake(w http.ResponseWriter, r *http.Request) {
 		log.Info("%v", msgData)
 		// 解包 消息需要转成我们的消息对象  probuf 相当于是一个公共文档
 
-		// 安装 protobuf 的插件 1.18
+		cmd := &msg.UserLoginCmd{}
+		_ = proto.Unmarshal(msgData[4:], cmd)
+
+		log.Info("%v", cmd)
+
 	}
 }
